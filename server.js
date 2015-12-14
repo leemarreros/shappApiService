@@ -76,6 +76,10 @@ router.route('/bears/:bear_id')
     })
   })
 
+app.use('/', function(req, res){
+  res.json({message: 'Bear created'});
+});
+
 app.use('/api', router);
 app.listen(port);
 console.log('Maggic happen on port ' + port);
