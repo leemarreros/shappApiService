@@ -1,9 +1,14 @@
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
-var Bear = require('./app/models/bear');
 var mongoose= require('mongoose');
-var dbURI = 'mongodb://bear1:bear@ds029595.mongolab.com:29595/bearsmongoose';
+
+var Maker = require('./app/models/Maker');
+var Article = require('./app/models/Article');
+var Work = require('./app/models/Work');
+var Chat = require('./app/models/Chat');
+
+var dbURI = 'mongodb://manager:shapp@ds033135.mongolab.com:33135/shapp';
 
 mongoose.connection.on('connected', function(){
   console.log('connected');
@@ -34,7 +39,7 @@ router.get('/', function(req, res) {
   res.json({message: 'hooray! welcome to our api!'});
 })
 
-router.route('/bears')
+router.route('/makers')
   .post(function(req, res) {
     var bear = new Bear();
     bear.name = req.body.name;
@@ -75,7 +80,6 @@ router.route('/bears/:bear_id')
       res.json({message: 'Successfully deleted'});
     })
   })
-
 
 app.use('/api', router);
 app.listen(port);
