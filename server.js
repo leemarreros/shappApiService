@@ -1,7 +1,8 @@
 var express = require('express');
-var app = express();
 var bodyParser = require('body-parser');
+var logger = require('morgan');
 var mongoose= require('mongoose');
+var session = require('express-session')
 
 var Maker = require('./app/models/Maker');
 var Article = require('./app/models/Article');
@@ -23,8 +24,11 @@ mongoose.connection.on('disconnected', function(){
 
 mongoose.connect(dbURI);
 
-app.use(bodyParser.urlencoded({extended: true}));
+var app = express();
+app.use(logger('dev'));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(session({secret: '1234567890QWERTY', cookie: { maxAge: 60000 }, resave: true, saveUninitialized: true }));
 
 var port = process.env.PORT || 8000;
 
@@ -39,19 +43,111 @@ router.get('/', function(req, res) {
   res.json({message: 'hooray! welcome to our api!'});
 })
 
+router.route('/signupmanual')
+  .post(function(req, res) {
+    Maker.findOne({fbId: req.body.fbId}, function(err, maker) {
+      if (maker) {
+        console.log('Maker already exists. Please, Log In.');
+        res.json({message: 'This is an existent maker. Sign In'});
+      } else {
+        Maker.create({
+          username: req.body.username,
+          name: req.body.name,
+          fbId: req.body.fbId,
+          email: req.body.email,
+          picture: req.body.picture,
+          password: req.body.password,
+          address: {zipcode: req.body.zipcode}
+        }, function(err, maker){
+          if (err) console.log(err);
+          res.json({message: 'Maker created'});
+        });
+      }
+    });
+  });
+
+router.route('/signupfb')
+  .post(function(req, res) {
+    Maker.findOne({fbId: req.body.fbId}, function(err, maker) {
+      if (maker) {
+        console.log('Maker already exists. Please, Log In.');
+        res.json({message: 'This is an existent maker. Sign In'});
+      } else {
+        Maker.create({
+          name: req.body.name,
+          fbId: req.body.fbId,
+          email: req.body.email,
+          picture: req.body.picture
+        }, function(err, maker){
+          if (err) console.log(err);
+          res.json({message: 'Maker created'});
+        });
+      }
+    });
+  });
+
+router.route('/loginfb')
+  .post(function(req, res) {
+    Maker.findOne({fbId: req.body.fbId}, function(err, maker) {
+      if (!maker) {
+        console.log('Maker does not exist. Please, Sign Up.');
+        res.json({message: 'invalid'});
+      } else {
+        req.session.loggedIn = true;
+        console.log('Logged in user: ' + maker.name);
+        res.json({message: 'Welcome!', status: 'valid'});
+      }
+    });
+  });
+
+router.route('/loginmanual')
+  .post(function(req, res) {
+    Maker.findOne(
+      {
+        $or:[
+              {email: req.body.email},
+              {username: req.body.username}
+            ]
+
+      }, {password: 1}, function(err, maker) {
+      if (!maker) {
+        console.log(maker);
+        console.log('Maker does not exist. Please, Sign Up.');
+        res.json({message: 'This is a non existent maker. Sign Up', status: 'nonUser'});
+      } else {
+        if (maker.password != req.body.password) {
+          res.json({message: 'Wrong password. Sign Up', status: 'passwordIncorrect'});
+        } else {
+          req.session.loggedIn = true;
+          console.log('Logged in user: ' + maker);
+          res.json({message: 'Welcome!', status: 'successLogin'});
+        }
+      }
+    });
+  });
+
+
 router.route('/makers')
   .post(function(req, res) {
-    var bear = new Bear();
-    bear.name = req.body.name;
-    bear.save(function(err) {
-      if (err) res.send(err);
-      res.json({message: 'Bear created'});
+    var maker = new Maker();
+    maker.name = req.body.name;
+    maker.fbId = req.body.fbId; //FB Login
+    maker.email = req.body.email; //FB Login
+    maker.picture = req.body.picture; //FB Login
+
+    maker.save(function(err) {
+      if (err) {
+        console.log(err);
+        if (err.code===11000) res.redirect('/maker/new?exists=true');
+        res.send(err);
+      }
+      res.json({message: 'Maker created'});
     })
   })
   .get(function(req, res) {
-    Bear.find(function(err, bears){
+    Maker.find(function(err, makers){
       if (err) res.send(err);
-      res.json(bears);
+      res.json(makers);
     })
   })
 

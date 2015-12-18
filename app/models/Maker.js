@@ -5,22 +5,23 @@ var AddressSchema = new Schema({
   address: String,
   zipcode: Number,
   city: String,
-  state: String
+  state: String,
+  latitute: Number,
+  longitude: Number
 });
 
 var MakerSchema = new Schema({
   name: String,
-  fbID: String,
+  fbId: {type: String, unique: true},
   address: [AddressSchema],
+  password: String,
+  username: String,
   email: String,
-  bio: String,
-  latitute: Number,
-  longitude: Number
+  picture: String,
+  bio: String
 })
 
 module.exports = mongoose.model('Maker', MakerSchema);
-
-
 
 
 // *SAVING DATA
