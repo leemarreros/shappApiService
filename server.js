@@ -45,22 +45,26 @@ router.get('/', function(req, res) {
 
 router.route('/signupmanual')
   .post(function(req, res) {
-    Maker.findOne({fbId: req.body.fbId}, function(err, maker) {
+    Maker.findOne(
+    {
+      $or:[
+            {email: req.body.email},
+            {username: req.body.username}
+          ]
+    }, function(err, maker) {
       if (maker) {
-        console.log('Maker already exists. Please, Log In.');
-        res.json({message: 'This is an existent maker. Sign In'});
+        console.log('Maker already exists. Please, Log In.', maker);
+        res.json({message: 'This is an existent maker. Sign In', status: 'notNew'});
       } else {
         Maker.create({
           username: req.body.username,
           name: req.body.name,
-          fbId: req.body.fbId,
           email: req.body.email,
-          picture: req.body.picture,
           password: req.body.password,
           address: {zipcode: req.body.zipcode}
         }, function(err, maker){
           if (err) console.log(err);
-          res.json({message: 'Maker created'});
+          res.json({message: 'Maker created', status: 'successSignUp'});
         });
       }
     });
@@ -108,7 +112,6 @@ router.route('/loginmanual')
               {email: req.body.email},
               {username: req.body.username}
             ]
-
       }, {password: 1}, function(err, maker) {
       if (!maker) {
         console.log(maker);
