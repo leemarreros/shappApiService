@@ -91,11 +91,11 @@ router.route('/loginfb')
     Maker.findOne({fbId: req.body.fbId}, function(err, maker) {
       if (!maker) {
         console.log('Maker does not exist. Please, Sign Up.');
-        res.json({message: 'invalid'});
+        res.json({message: 'Maker does not exist', status: 'noexist'});
       } else {
         req.session.loggedIn = true;
         console.log('Logged in user: ' + maker.name);
-        res.json({message: 'Welcome!', status: 'valid'});
+        res.json({message: 'Welcome!', status: 'successLogin'});
       }
     });
   });
