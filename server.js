@@ -71,7 +71,7 @@ router.route('/signupfb')
     Maker.findOne({fbId: req.body.fbId}, function(err, maker) {
       if (maker) {
         console.log('Maker already exists. Please, Log In.');
-        res.json({message: 'This is an existent maker. Sign In'});
+        res.json({message: 'This is an existent maker. Sign In', status: 'notNew'});
       } else {
         Maker.create({
           name: req.body.name,
@@ -80,7 +80,7 @@ router.route('/signupfb')
           picture: req.body.picture
         }, function(err, maker){
           if (err) console.log(err);
-          res.json({message: 'Maker created'});
+          res.json({message: 'Maker created', status: 'successSignUp'});
         });
       }
     });
