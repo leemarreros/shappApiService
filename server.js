@@ -43,6 +43,11 @@ router.get('/', function(req, res) {
   res.json({message: 'hooray! welcome to our api!'});
 })
 
+router.get('/session', function(req, res) {
+  console.log(req.session.loggedIn);
+  res.json({session: req.session.loggedIn});
+})
+
 router.route('/signupmanual')
   .post(function(req, res) {
     Maker.findOne(
@@ -63,6 +68,7 @@ router.route('/signupmanual')
           password: req.body.password,
           address: {zipcode: req.body.zipcode}
         }, function(err, maker){
+          req.session.loggedIn = true;
           if (err) console.log(err);
           res.json({message: 'Maker created', status: 'successSignUp'});
         });
@@ -84,6 +90,7 @@ router.route('/signupfb')
           picture: req.body.picture
         }, function(err, maker){
           if (err) console.log(err);
+          req.session.loggedIn = true;
           res.json({message: 'Maker created', status: 'successSignUp'});
         });
       }
