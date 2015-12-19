@@ -136,6 +136,16 @@ router.route('/loginmanual')
     });
   });
 
+router.route('/articles/:maker_id')
+  .post(function(req, res) {
+    Article.create({
+      createdBy: req.params.maker_id,
+      title: req.state.title,
+      content: req.state.content,
+      tags: req.state.tags,
+      picture: req.state.picture
+    });
+  });
 
 router.route('/makers')
   .post(function(req, res) {
