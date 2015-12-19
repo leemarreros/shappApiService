@@ -11,6 +11,9 @@ var Chat = require('./app/models/Chat');
 
 var dbURI = 'mongodb://manager:shapp@ds033135.mongolab.com:33135/shapp';
 
+var AWS = require('aws-sdk');
+AWS.config.loadFromPath('./app/api/s3_config.json');
+
 mongoose.connection.on('connected', function(){
   console.log('connected');
 })
@@ -145,6 +148,34 @@ router.route('/articles/:maker_id')
       tags: req.state.tags,
       picture: req.state.picture
     });
+  });
+
+router.route('/sign_s3')
+  .get(function(req, res) {
+    var s3 = new AWS.S3({
+      endpoint: 's3-website-us-west-2.amazonaws.com'
+    });
+    var s3_params = {
+        Bucket: 'shapcontainer',
+        Key: 'myKey',
+        Expires: 60,
+        // ContentType: req.query.file_type,
+        ACL: 'public-read'
+    };
+
+    s3.getSignedUrl('putObject', s3_params, function(err, data) {
+      if (err) {
+        console.log(err);
+      } else {
+          var return_data = {
+              signed_request: data,
+              url: 'https://'+'shapcontainer'+'.s3.amazonaws.com/'+'myKey'
+          };
+          res.write(JSON.stringify(return_data));
+          res.end();
+      }
+    })
+
   });
 
 router.route('/makers')
