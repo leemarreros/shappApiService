@@ -1,9 +1,9 @@
 var AWS = require('aws-sdk');
 AWS.config.loadFromPath('./s3_config.json');
 
-// var s3 = new AWS.S3({
-//   endpoint: 's3-website-us-west-2.amazonaws.com'
-// });
+var s3 = new AWS.S3({
+  endpoint: 's3-website-us-west-2.amazonaws.com'
+});
 // https://s3-us-west-2.amazonaws.com/shapcontainer/myKey
 // var s3bucket = new AWS.S3({params: {Bucket: 'shapcontainer'}});
 // s3bucket.createBucket(function() {
