@@ -12,6 +12,7 @@ var Work = require('./app/models/Work');
 var Chat = require('./app/models/Chat');
 
 var dbURI = 'mongodb://manager:shapp@ds033135.mongolab.com:33135/shapp';
+var urlAwsShapContaier = 'https://s3-us-west-2.amazonaws.com/shapcontainer/';
 
 var AWS = require('aws-sdk');
 AWS.config.loadFromPath('./app/api/s3_config.json');
@@ -159,43 +160,46 @@ function resizeImageCanvas(imgBase64, width, height) {
 
 router.route('/articles/:maker_id')
   .post(function(req, res) {
-    if (req.body.picture != 'null') {
-      var s3 = new AWS.S3({params: {Bucket: 'shapcontainer'}});
-      var imgResized = resizeImageCanvas(req.body.picture, 600, 600);
-      var imgBuf = new Buffer(imgResized.replace(/^data:image\/\w+;base64,/, ""),'base64')
-      var dataUri = {
-        Key: req.params.maker_id + '12',
-        Body: imgBuf,
-        ContentEncoding: 'base64',
-        ContentType: 'image/png'
-      };
-      s3.putObject(dataUri, function(err, data){
-        if (err) {
-          console.log(err);
-          console.log('Error uploading data: ', data);
-        } else {
-          console.log('succesfully uploaded the image!', data);
-          res.json({message: 'Article with image created', status: 'artImgCreated'});
-        }
-      });
+    Maker.findOne( {fbId: req.params.maker_id}, {_id: 1},
+      function(err, data){
 
-    } else {
-      Maker.findOne(
-      {fbId: req.params.maker_id},
-      {_id: 1},
-        function(err, data){
-          Article.create({
-            createdBy: data._id,
-            title: req.body.title,
-            content: req.body.content,
-            tags: req.body.tags
-          }, function(err, maker){
-              if (err) console.log(err);
-              res.json({message: 'Article created', status: 'articleCreated'});
+        if (err) console.log(err);
+
+        var article = new Article();
+        article.createdBy = data._id;
+        article.title = req.body.title;
+        article.content = req.body.content;
+        article.tags = req.body.tags;
+        if (req.body.picture != 'null') {
+          var s3 = new AWS.S3({params: {Bucket: 'shapcontainer'}});
+          var imgResized = resizeImageCanvas(req.body.picture, 600, 600);
+          var imgBuf = new Buffer(imgResized.replace(/^data:image\/\w+;base64,/, ""),'base64');
+          var dateNow = Date.now();
+          var dataUri = {
+            Key: req.params.maker_id + "" + dateNow,
+            Body: imgBuf,
+            ContentEncoding: 'base64',
+            ContentType: 'image/png'
+          };
+          s3.putObject(dataUri, function(err, data){
+            if (err) {
+              console.log(err);
+              console.log('Error uploading data: ', data);
+            } else {
+              console.log('succesfully uploaded the image!', data);
+              article.picture = urlAwsShapContaier + req.params.maker_id + "" + dateNow;
+              article.save(function(err, data){
+                res.json({message: 'Article with image created', status: 'artImgCreated'});
+              });
+            }
           });
+        } else {
+          article.save(function(err, data){
+            res.json({message: 'Article created', status: 'articleCreated'});
+          });
+        }
 
-        });
-    }
+      });
   });
 
 router.route('/aws-s3')
