@@ -162,7 +162,6 @@ router.route('/articles/:maker_id')
   .post(function(req, res) {
     Maker.findOne( {fbId: req.params.maker_id}, {_id: 1},
       function(err, data){
-
         if (err) console.log(err);
 
         var article = new Article();
@@ -190,14 +189,86 @@ router.route('/articles/:maker_id')
               article.picture = urlAwsShapContaier + req.params.maker_id + "" + dateNow;
               article.save(function(err, data){
                 res.json({message: 'Article with image created', status: 'artImgCreated'});
+                return;
               });
             }
           });
-        } else {
-          article.save(function(err, data){
-            res.json({message: 'Article created', status: 'articleCreated'});
+        }
+
+        article.save(function(err, data){
+          res.json({message: 'Article created', status: 'articleCreated'});
+        });
+
+      });
+  });
+
+router.route('/work/:maker_id')
+  .post(function(req, res) {
+    Maker.findOne( {fbId: req.params.maker_id}, {_id: 1},
+      function(err, data){
+        if (err) console.log(err);
+
+        var work = new Work();
+        work.createdBy = data._id;
+        work.title = req.body.title;
+        work.content = req.body.content;
+        work.tags = req.body.tags;
+
+        if (req.body.picture != 'null') {
+          var s3 = new AWS.S3({params: {Bucket: 'shapcontainer'}});
+          var imgResized = resizeImageCanvas(req.body.picture, 600, 600);
+          var imgBuf = new Buffer(imgResized.replace(/^data:image\/\w+;base64,/, ""),'base64');
+          var dateNow = Date.now();
+          var dataUri = {
+            Key: req.params.maker_id + "" + dateNow,
+            Body: imgBuf,
+            ContentEncoding: 'base64',
+            ContentType: 'image/png'
+          };
+          s3.putObject(dataUri, function(err, data){
+            if (err) {
+              console.log(err, 'Error uploading data: ', data);
+            } else {
+              console.log('succesfully uploaded the image!', data);
+              work.video = urlAwsShapContaier + req.params.maker_id + "" + dateNow;
+              work.save(function(err, data){
+                res.json({message: 'work with image created', status: 'artImgCreated'});
+                return;
+              });
+            }
           });
         }
+
+        if (req.body.video != 'null') {
+          console.log('loading video');
+          var s3 = new AWS.S3({params: {Bucket: 'shapcontainer'}});
+          var imgBuf = new Buffer(req.body.video.replace(/^data:image\/\w+;base64,/, ""),'base64');
+          var dateNow = Date.now();
+          var dataUri = {
+            Key: req.params.maker_id + "" + dateNow,
+            Body: imgBuf,
+            ContentEncoding: 'base64',
+            ContentType: 'video/mp4'
+          };
+
+          s3.putObject(dataUri, function(err, data){
+            if (err) {
+              console.log(err, 'Error uploading data: ', data);
+            } else {
+              console.log('succesfully uploaded the video!', data);
+              work.videos.push(urlAwsShapContaier + req.params.maker_id + "" + dateNow);
+              work.save(function(err, data){
+                console.log('video data', data);
+                res.json({message: 'Article with image created', status: 'videoCreated'});
+              });
+            }
+          });
+          return;
+        }
+
+        work.save(function(err, data){
+          res.json({message: 'Article created', status: 'articleCreated'});
+        });
 
       });
   });
