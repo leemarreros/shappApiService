@@ -4,6 +4,7 @@ var Schema = mongoose.Schema;
 var WorkSchema = new Schema({
   createdBy: {type: mongoose.Schema.Types.ObjectId, ref: 'Maker'},
   createdOn: {type: Date, default: Date.now},
+  identifier: String,
   title: String,
   description: String,
   price: Number,
