@@ -204,6 +204,15 @@ router.route('/articles/:maker_id')
         });
 
       });
+  })
+  .get(function(req, res) {
+    Maker.findOne( {fbId: req.params.maker_id}, {_id: 1},
+      function(err, data) {
+        Article.find({createdBy: data._id}, function(err, data) {
+          res.json({message: 'Retrieve work', data: data});
+        })
+      });
+
   });
 
 router.route('/workvideos/:maker_id', upload.single('avatar'))
