@@ -174,8 +174,9 @@ router.route('/articles/:maker_id')
         article.tags = req.body.tags;
         if (req.body.picture != 'null') {
           var s3 = new AWS.S3({params: {Bucket: 'shapcontainer'}});
-          var imgResized = resizeImageCanvas(req.body.picture, 600, 600);
-          var imgBuf = new Buffer(imgResized.replace(/^data:image\/\w+;base64,/, ""),'base64');
+          // var imgResized = resizeImageCanvas(req.body.picture, 600, 600);
+          // var imgBuf = new Buffer(imgResized.replace(/^data:image\/\w+;base64,/, ""),'base64');
+          var imgBuf = new Buffer(req.body.picture.replace(/^data:image\/\w+;base64,/, ""),'base64');
           var dateNow = Date.now();
           var dataUri = {
             Key: req.params.maker_id + "" + dateNow,
@@ -237,8 +238,9 @@ router.route('/workvideos/:maker_id', upload.single('avatar'))
 router.route('/workimages/:maker_id')
   .post(function(req, res) {
       var s3 = new AWS.S3({params: {Bucket: 'shapcontainer'}});
-      var imgResized = resizeImageCanvas(req.body.picture, 600, 600);
-      var imgBuf = new Buffer(imgResized.replace(/^data:image\/\w+;base64,/, ""),'base64');
+      // var imgResized = resizeImageCanvas(req.body.picture, 600, 600);
+      // var imgBuf = new Buffer(imgResized.replace(/^data:image\/\w+;base64,/, ""),'base64');
+      var imgBuf = new Buffer(req.body.picture.replace(/^data:image\/\w+;base64,/, ""),'base64');
       var dateNow = Date.now();
       var key = req.params.maker_id + "" + dateNow;
       var awsImageURL = urlAwsShapContaier + key;
@@ -274,51 +276,22 @@ router.route('/work/:maker_id')
         work.price = req.body.price;
         work.category = req.body.category;
         work.tags = req.body.tags;
-        if (req.body.videos.length != 0) work.videos = work.videos.concat(req.body.videos);
-        if (req.body.pictures.length != 0) work.pictures = work.pictures.concat(req.body.pictures);
+        if (req.body.videos.length > 0) req.body.videos.split(",").forEach(function(video){work.videos.push(video)});
+        if (req.body.pictures.length > 0) req.body.pictures.split(",").forEach(function(picture){work.pictures.push(picture)});
         work.save(function(err, data){
-          res.json({message: 'Article created', status: 'articleCreated'});
+          res.json({message: 'Article created', status: 'workCreated'});
         });
       });
   })
   .get(function(req, res) {
-    Maker.find(
-      {fbId: req.params.maker_id},
+    Maker.findOne( {fbId: req.params.maker_id}, {_id: 1},
       function(err, data) {
-      res.json({message: 'Retrieve work', data: data});
+        Work.find({createdBy: data._id}, function(err, data){
+          res.json({message: 'Retrieve work', data: data});
+        });
     })
   })
 
-
-
-
-router.route('/aws-s3')
-  .get(function(req, res) {
-    var s3_params = {
-        Bucket: 'shapcontainer',
-        Key: 'myKey',
-        Expires: 60,
-        // ContentType: req.query.file_type,
-        ACL: 'public-read'
-    };
-
-    s3.getSignedUrl('putObject', s3_params, function(err, data) {
-      if (err) {
-        console.log(err);
-      } else {
-          var return_data = {
-              signed_request: data,
-              url: 'https://'+'shapcontainer'+'.s3.amazonaws.com/'+'myKey'
-          };
-          res.write(JSON.stringify(return_data));
-          res.end();
-      }
-    })
-
-  })
-  .post(function(req, res) {
-
-  });
 
 router.route('/makers')
   .post(function(req, res) {
