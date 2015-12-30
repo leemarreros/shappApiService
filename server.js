@@ -161,6 +161,16 @@ function resizeImageCanvas(imgBase64, width, height) {
   return canvasURL;
 }
 
+router.route('/articles')
+  .get(function(req, res) {
+    console.log('inside get');
+    Article.find(function(err, articles) {
+    if (err) res.send(err);
+      console.log('inside Article');
+      res.json({data: articles});
+    }).sort( { createdOn: -1 } );
+  });
+
 router.route('/articles/:maker_id')
   .post(function(req, res) {
     Maker.findOne( {fbId: req.params.maker_id}, {_id: 1},
@@ -301,7 +311,6 @@ router.route('/work/:maker_id')
     })
   })
 
-
 router.route('/makers')
   .post(function(req, res) {
     var maker = new Maker();
@@ -354,4 +363,5 @@ router.route('/bears/:bear_id')
 
 app.use('/api', router);
 app.listen(port);
+
 console.log('Maggic happen on port ' + port);
