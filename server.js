@@ -57,6 +57,10 @@ router.get('/session', function(req, res) {
   console.log(req.session.loggedIn);
   res.json({session: req.session.loggedIn});
 })
+router.post('/session', function(req, res) {
+  req.session.loggedIn = req.body.logOut;
+  res.json({session: req.session.loggedIn});
+})
 
 router.route('/signupmanual')
   .post(function(req, res) {
@@ -116,9 +120,15 @@ router.route('/loginfb')
       } else {
         req.session.loggedIn = true;
         console.log('Logged in user: ' + maker.name);
-        res.json({message: 'Welcome!', status: 'successLogin'});
+        res.json({message: 'Welcome!', status: 'successLogin', maker: maker});
       }
     });
+  });
+
+router.route('/logout')
+  .get(function(req, res) {
+    req.session.loggedIn = false;
+    res.json({message: 'User logged out', status: 'loggedout'});
   });
 
 router.route('/loginmanual')
@@ -140,7 +150,7 @@ router.route('/loginmanual')
         } else {
           req.session.loggedIn = true;
           console.log('Logged in user: ' + maker);
-          res.json({message: 'Welcome!', status: 'successLogin'});
+          res.json({message: 'Welcome!', status: 'successLogin', maker: maker});
         }
       }
     });
@@ -168,7 +178,7 @@ router.route('/articles')
     if (err) res.send(err);
       console.log('inside Article');
       res.json({data: articles});
-    }).sort( { createdOn: -1 } );
+    }).sort( { createdOn: -1 } ).populate('createdBy', 'name');
   });
 
 router.route('/articles/:maker_id')
