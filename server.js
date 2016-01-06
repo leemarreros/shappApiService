@@ -345,6 +345,28 @@ router.route('/makers')
     })
   })
 
+router.route('/makerprofileupdate/:maker_id')
+  .post(function(req, res) {
+    Maker.findOne(
+    {
+      $or:[
+            {fbId: req.params.maker_id},
+            {email: req.body.email},
+            {username: req.body.username}
+          ]
+    }, function(err, maker) {
+      if (maker) {
+        Maker.update({_id: maker._id});
+        console.log(maker._id);
+        console.log(req.body);
+        res.json({message: 'Update succesfully', status: 'makerUpdated'});
+      } else {
+        res.json({message: 'Error finding the user', status: 'error'});
+      }
+    });
+
+  })
+
 router.route('/bears/:bear_id')
   .get(function(req, res) {
     Bear.findById(req.params.bear_id, function(err, bear){
