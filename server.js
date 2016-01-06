@@ -368,7 +368,7 @@ router.route('/makerprofileupdate')
     console.log('setFilter', setFilter);
     if (Object.keys(setFilter).length === 1 && Object.keys(setFilter.address).length === 0) {
       res.json({message: 'No changes', status: 'noChanges'});
-      console.log('no changes');
+
       return;
     }
 
@@ -382,7 +382,7 @@ router.route('/makerprofileupdate')
           res.json({message: 'Update succesfully', status: 'makerUpdated'});
         });
       } else {
-        console.log('error finding maker');
+
         res.json({message: 'Error finding the user', status: 'error'});
       }
     });
