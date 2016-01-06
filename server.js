@@ -345,22 +345,44 @@ router.route('/makers')
     })
   })
 
-router.route('/makerprofileupdate/:maker_id')
+router.route('/makerprofileupdate')
   .post(function(req, res) {
+    var orFilter = [];
+    !!req.body.username ? orFilter.push({username: req.body.username}) : null;
+    !!req.body.email ? orFilter.push({email: req.body.email}) : null;
+    !!req.body.fbId ? orFilter.push({fbId: req.body.fbId}) : null;
+
+    var setFilter = {};
+    setFilter.address = {};
+    !!req.body.name ? setFilter.name = req.body.name : null;
+    !!req.body.username ? setFilter.username = req.body.username : null;
+    !!req.body.address ? setFilter.address.address = req.body.address : null;
+    !!req.body.city ? setFilter.address.city = req.body.city : null;
+    !!req.body.state ? setFilter.address.state = req.body.state : null;
+    !!req.body.zipcode ? setFilter.address.zipcode = req.body.zipcode : null;
+    !!req.body.latitude ? setFilter.address.latitude = req.body.latitude : null;
+    !!req.body.longitude ? setFilter.address.longitude = req.body.longitude : null;
+    !!req.body.email ? setFilter.email = req.body.email : null;
+    !!req.body.bio ? setFilter.bio = req.body.bio : null;
+
+    console.log('setFilter', setFilter);
+    if (Object.keys(setFilter).length === 1 && Object.keys(setFilter.address).length === 0) {
+      res.json({message: 'No changes', status: 'noChanges'});
+      console.log('no changes');
+      return;
+    }
+
     Maker.findOne(
     {
-      $or:[
-            {fbId: req.params.maker_id},
-            {email: req.body.email},
-            {username: req.body.username}
-          ]
+      $or: orFilter
     }, function(err, maker) {
       if (maker) {
-        Maker.update({_id: maker._id});
-        console.log(maker._id);
-        console.log(req.body);
-        res.json({message: 'Update succesfully', status: 'makerUpdated'});
+        Maker.update({_id: maker._id}, {$set: setFilter}, function(err, data){
+          if (err) console.log(err);
+          res.json({message: 'Update succesfully', status: 'makerUpdated'});
+        });
       } else {
+        console.log('error finding maker');
         res.json({message: 'Error finding the user', status: 'error'});
       }
     });

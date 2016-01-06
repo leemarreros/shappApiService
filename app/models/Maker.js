@@ -13,7 +13,7 @@ var AddressSchema = new Schema({
 var MakerSchema = new Schema({
   name: String,
   fbId: {type: String, unique: true},
-  address: [AddressSchema],
+  address: AddressSchema,
   password: String,
   username: String,
   email: String,
