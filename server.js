@@ -139,7 +139,7 @@ router.route('/loginmanual')
               {email: req.body.email},
               {username: req.body.username}
             ]
-      }, {password: 1}, function(err, maker) {
+      }, function(err, maker) {
       if (!maker) {
         console.log(maker);
         console.log('Maker does not exist. Please, Sign Up.');
@@ -149,7 +149,7 @@ router.route('/loginmanual')
           res.json({message: 'Wrong password. Sign Up', status: 'passwordIncorrect'});
         } else {
           req.session.loggedIn = true;
-          console.log('Logged in user: ' + maker);
+          console.log('Logged in user: ' + maker.name);
           res.json({message: 'Welcome!', status: 'successLogin', maker: maker});
         }
       }
@@ -388,6 +388,48 @@ router.route('/makerprofileupdate')
     });
 
   })
+
+router.route('/makerarticlecreate')
+  .post(function(req, res) {
+
+    var setFilter = {};
+    !!req.body.title ? setFilter.title = req.body.title : null;
+    !!req.body.content ? setFilter.content = req.body.content : null;
+    !!req.body.tags ? setFilter.tags = req.body.tags : null;
+
+    var orFilter = [];
+    !!req.body._id ? orFilter.push({_id: req.body._id}) : null;
+
+    var article = new Article();
+    article.title = req.body.title;
+    article.content = req.body.content;
+    !!req.body.tags ? article.tags = req.body.tags : null;
+
+    if (!req.body._id) {
+      Maker.findOne({fbId: req.body.fbId}, function(err, maker) {
+
+        article.createdBy = maker._id;
+        article.save(function(err) {
+          if (err) {
+            console.log(err);
+            res.send(err);
+          }
+          res.json({message: 'Article created'});
+        })
+
+      })
+    } else {
+        article.createdBy = req.body._id;
+        article.save(function(err) {
+          if (err) {
+            console.log(err);
+            res.send(err);
+          }
+          res.json({message: 'Article created'});
+        })
+    }
+
+  });
 
 router.route('/bears/:bear_id')
   .get(function(req, res) {
