@@ -414,7 +414,7 @@ router.route('/makerarticlecreate')
             console.log(err);
             res.send(err);
           }
-          res.json({message: 'Article created'});
+          res.json({message: 'Article created', condition: 'done'});
         })
 
       })
@@ -425,7 +425,7 @@ router.route('/makerarticlecreate')
             console.log(err);
             res.send(err);
           }
-          res.json({message: 'Article created'});
+          res.json({message: 'Article created', condition: 'done'});
         })
     }
 
