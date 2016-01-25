@@ -230,7 +230,7 @@ router.route('/articles/:maker_id')
       function(err, data) {
         Article.find({createdBy: data._id}, function(err, data) {
           res.json({message: 'Retrieve work', data: data});
-        })
+        }).sort( { createdOn: -1 } )
       });
 
   });
